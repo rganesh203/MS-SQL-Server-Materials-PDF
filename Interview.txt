@@ -1,0 +1,250 @@
+	
+
+DECLARE @YourDecimal DECIMAL(18, 4)
+SET @YourDecimal = 000123.4500
+
+-- Remove leading and trailing zeroes
+SELECT CAST(CAST(@YourDecimal AS VARCHAR(MAX)) AS DECIMAL(18, 4)) AS CleanedDecimal
+
+
+-- Set the year for which you want to calculate biweekly Fridays
+DECLARE @Year INT = 2023;
+
+-- Generate biweekly Fridays
+WITH BiweeklyFridays AS (
+    SELECT DATEFROMPARTS(@Year, 1, 5) AS BiweeklyFriday -- Start from the first Friday in January
+    UNION ALL
+    SELECT DATEADD(DAY, 14, BiweeklyFriday) -- Add 14 days for each subsequent Friday
+    FROM BiweeklyFridays
+    WHERE YEAR(BiweeklyFriday) = @Year
+)
+SELECT BiweeklyFriday
+FROM BiweeklyFridays
+WHERE BiweeklyFriday <= DATEFROMPARTS(@Year, 12, 31)
+ORDER BY BiweeklyFriday;
+
+1. types of Views in Databricks
+2. compaction in pyspark databricks
+3. Databricks index
+4. types of clusters
+5. pipelines optimization techniques
+6. user property vs anotations
+7. pipeline fialure policies how to handle
+8. delta vs datalake
+9. null, nil, none, nothing
+10. exception handling in databricks
+11. spark memory
+12. Sparkconfig
+13. Etl VA elt
+14. Transaction log
+15. What is ACID
+16. Integrity
+17. Streaming vs batch processing
+18. integration runtimes
+
+
+#types of View in sql server
+
+In SQL Server, there are different types of views that serve various purposes. The primary types of views are:
+
+Simple View:
+
+A simple view is based on a single table and does not contain any functions or joins.
+It is the most basic type of view, providing a way to encapsulate a SELECT statement on a single table.
+sql
+Copy code
+CREATE VIEW SimpleView AS
+SELECT Column1, Column2
+FROM YourTable;
+Complex View:
+
+A complex view involves multiple tables and may include functions, joins, and other SQL operations.
+Complex views are useful for presenting data in a specific format, combining data from different tables, or applying calculations.
+sql
+Copy code
+CREATE VIEW ComplexView AS
+SELECT t1.Column1, t2.Column2
+FROM Table1 t1
+JOIN Table2 t2 ON t1.ID = t2.ID;
+Indexed View (Materialized View):
+
+An indexed view, also known as a materialized view, is a view that has a unique clustered index created on it.
+Indexed views are physically stored on disk, and the indexed structure helps improve query performance for certain types of queries.
+The data in an indexed view is automatically updated when the underlying tables are modified.
+sql
+Copy code
+CREATE VIEW IndexedView
+WITH SCHEMABINDING
+AS
+SELECT Column1, COUNT_BIG(*) AS Count
+FROM dbo.YourTable
+GROUP BY Column1;
+
+CREATE UNIQUE CLUSTERED INDEX IX_IndexedView ON IndexedView (Column1);
+Partitioned View:
+
+A partitioned view is a view that combines the data from several tables with identical structures into a single view.
+This type of view is useful for managing large amounts of data by dividing it into smaller, more manageable tables.
+sql
+Copy code
+CREATE VIEW PartitionedView AS
+SELECT * FROM Table1
+UNION ALL
+SELECT * FROM Table2;
+Inline Table-Valued Function (iTVF):
+
+While not technically a view, an inline table-valued function is a construct that behaves similarly to a view.
+It returns a table result set and can be used in the FROM clause of a SELECT statement, just like a view.
+sql
+Copy code
+CREATE FUNCTION InlineTableValuedFunction ()
+RETURNS TABLE
+AS
+RETURN (
+    SELECT Column1, Column2
+    FROM YourTable
+);
+
+-- Usage
+SELECT * FROM InlineTableValuedFunction();
+These are some common types of views in SQL Server. Each type has its own use cases and considerations. The choice of the type of view depends on the specific requirements of your application and the nature of the data you are working with.
+
+#types of index
+in sql server
+
+
+In SQL Server, indexes are database objects that improve the speed of data retrieval operations on database tables. There are several types of indexes in SQL Server, each serving different purposes. Here are the primary types:
+
+Clustered Index:
+
+A clustered index determines the physical order of data rows in a table.
+Each table can have only one clustered index.
+The data rows are sorted based on the clustered index key.
+The leaf nodes of the clustered index contain the actual data rows.
+Example:
+
+CREATE CLUSTERED INDEX IX_ClusteredIndex
+ON YourTable (Column1, Column2);
+Non-Clustered Index:
+
+A non-clustered index does not affect the physical order of data rows.
+Each table can have multiple non-clustered indexes.
+The leaf nodes of the non-clustered index contain a pointer to the actual data rows.
+Example:
+
+
+CREATE NONCLUSTERED INDEX IX_NonClusteredIndex
+ON YourTable (Column3, Column4);
+Unique Index:
+
+A unique index ensures that the indexed columns contain unique values.
+Both clustered and non-clustered indexes can be unique.
+A table can have multiple unique indexes.
+Example:
+
+
+CREATE UNIQUE CLUSTERED INDEX IX_UniqueClusteredIndex
+ON YourTable (Column1);
+Filtered Index:
+
+A filtered index is based on a subset of rows that meet a specific condition.
+It is useful when you want to create an index on a subset of data that is frequently queried.
+Example:
+
+
+CREATE NONCLUSTERED INDEX IX_FilteredIndex
+ON YourTable (Column2)
+WHERE Column3 = 'SomeCondition';
+Covering Index:
+
+A covering index includes all the columns required to satisfy a query, eliminating the need to access the actual data pages.
+It can significantly improve query performance by allowing the database engine to retrieve all necessary information from the index itself.
+Example:
+
+CREATE NONCLUSTERED INDEX IX_CoveringIndex
+ON YourTable (Column1, Column2)
+INCLUDE (Column3, Column4);
+Spatial Index:
+
+A spatial index is used for optimizing queries that involve spatial data types, such as geometry or geography.
+It helps accelerate spatial queries and operations.
+Example:
+
+
+CREATE SPATIAL INDEX IX_SpatialIndex
+ON YourTable (SpatialColumn);
+These are some of the primary types of indexes in SQL Server. The choice of index type depends on the specific requirements of your queries and the nature of your data. It's important to carefully consider the impact of indexes on both read and write operations and to monitor and maintain them regularly for optimal performance.
+
+CALCULATE(SUM('Database Export'[Nb Sales]),(FILTER('Database Export', 'Database Export'[Weeks Since Launch]=
+MAX('Database Export'[Weeks Since Launch]))))
+
+
+
+employee
+
+deprt
+
+
+select * from employee as e
+inner join 
+deprt as d
+on e.id =d.id
+where d.id<>30
+
+
+select dept, count(id) from
+employee
+group by dept
+
+
+select first_name, count(first_name) from employee
+group by first_name having
+count(first_name)>1
+
+Product table
+id, name, price, c_id
+
+category table
+c_id, c_name
+
+id wise 
+
+select p.c_id, c.c_name max(price) from product as p
+inner join category as c on p.c_id=c.c_id
+group by p.c_id, c.c_name
+ 
+ 
+
+products based on price desc c_id 
+
+
+select *, dense_rank() over(partition by price order by c_id desc)
+from product
+
+Zero-ETL is a set of integrations that eliminates or minimizes the need to build ETL data pipelines.
+A data replication tool can also be called a zero-ETL tool. A replication tool will transfer data in near-real-time 
+without requiring any intermediate processing or manipulation.
+
+WITH RankedSalaries AS (
+  SELECT
+    e.employee_id,
+    e.salary,
+    e.department_id,
+    d.department_name,
+    ROW_NUMBER() OVER (PARTITION BY e.department_id ORDER BY e.salary DESC) AS salary_rank
+  FROM
+    employees e
+    JOIN departments d ON e.department_id = d.department_id
+)
+SELECT
+  employee_id,
+  salary,
+  department_id,
+  department_name
+FROM
+  RankedSalaries
+WHERE
+  salary_rank = 2;
+  
+  
+  
